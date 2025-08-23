@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileUpload } from '@/components/ui/file-upload';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Plus, 
@@ -247,28 +248,6 @@ const ProductManagement: React.FC = () => {
     }
   };
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent, type: 'thumbnail' | 'product') => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    const file = files[0];
-    
-    if (!file) return;
-
-    if (type === 'thumbnail') {
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file for thumbnail');
-        return;
-      }
-      setThumbnailFile(file);
-    } else {
-      setProductFile(file);
-    }
-  }, []);
-
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -368,49 +347,28 @@ const ProductManagement: React.FC = () => {
                 {/* Thumbnail Upload */}
                 <div>
                   <Label>Product Thumbnail</Label>
-                  <div
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, 'thumbnail')}
-                    onClick={() => document.getElementById('thumbnail-upload')?.click()}
-                  >
-                    <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {thumbnailFile ? thumbnailFile.name : 'Drag & drop thumbnail or click to upload'}
-                    </p>
-                    <input
-                      id="thumbnail-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
+                  <FileUpload
+                    type="image"
+                    accept="image/*"
+                    maxSize={10}
+                    placeholder="Drag & drop thumbnail or click to upload"
+                    description="Supports: JPG, PNG, GIF (Max 10MB)"
+                    currentFile={thumbnailFile}
+                    onFileSelect={setThumbnailFile}
+                  />
                 </div>
                 
                 {/* Product File Upload */}
                 <div>
                   <Label>Product File</Label>
-                  <div
-                    className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, 'product')}
-                    onClick={() => document.getElementById('product-upload')?.click()}
-                  >
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {productFile ? productFile.name : 'Drag & drop product file or click to upload'}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Supports: PDF, MP3, MP4, ZIP, and more (Unlimited file size)
-                    </p>
-                    <input
-                      id="product-upload"
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => setProductFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
+                  <FileUpload
+                    accept="*/*"
+                    maxSize={500}
+                    placeholder="Drag & drop product file or click to upload"
+                    description="Supports: PDF, MP3, MP4, ZIP, and more (Max 500MB)"
+                    currentFile={productFile}
+                    onFileSelect={setProductFile}
+                  />
                 </div>
                 
                 <Button 

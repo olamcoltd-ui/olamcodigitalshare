@@ -24,10 +24,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
-    if (!paystackSecretKey) {
-      throw new Error('Paystack secret key not configured');
-    }
+  const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+  console.log('Secret Key check:', paystackSecretKey ? 'Available' : 'Missing');
+  if (!paystackSecretKey) {
+    console.error('PAYSTACK_SECRET_KEY environment variable is not set');
+    throw new Error('Paystack secret key not configured');
+  }
 
     // Get the list of Nigerian banks from Paystack
     const banksResponse = await fetch('https://api.paystack.co/bank?country=nigeria', {

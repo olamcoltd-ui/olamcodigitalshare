@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
     const { email, amount, productId, planId, referralCode }: PaystackRequest = await req.json();
 
     const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY');
+    console.log('Paystack secret key check:', paystackSecretKey ? 'Available' : 'Missing');
     if (!paystackSecretKey) {
+      console.error('PAYSTACK_SECRET_KEY environment variable is not set');
       throw new Error('Paystack secret key not configured');
     }
 
