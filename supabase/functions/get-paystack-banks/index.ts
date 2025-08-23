@@ -46,9 +46,9 @@ Deno.serve(async (req) => {
       throw new Error(banksData.message || 'Failed to fetch banks list');
     }
 
-    // Filter and sort banks for better UX
+    // Filter and sort banks for better UX - Include all active banks including fintech
     const activeBanks = banksData.data
-      .filter((bank: PaystackBank) => bank.active && bank.type === 'nuban')
+      .filter((bank: PaystackBank) => bank.active && (bank.type === 'nuban' || bank.type === 'mobile_money'))
       .sort((a: PaystackBank, b: PaystackBank) => a.name.localeCompare(b.name))
       .map((bank: PaystackBank) => ({
         name: bank.name,

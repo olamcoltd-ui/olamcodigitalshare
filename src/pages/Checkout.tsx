@@ -119,8 +119,9 @@ const Checkout: React.FC = () => {
       if (error) throw error;
 
       if (data.success) {
-        // Redirect to Paystack checkout
-        window.location.href = data.data.authorization_url;
+        // Redirect to Paystack checkout with callback URL
+        const callbackUrl = `${window.location.origin}/payment-success?type=product&reference=${data.data.reference}`;
+        window.location.href = `${data.data.authorization_url}&callback_url=${encodeURIComponent(callbackUrl)}`;
       } else {
         throw new Error(data.error || 'Payment initialization failed');
       }

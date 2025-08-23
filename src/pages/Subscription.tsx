@@ -118,8 +118,9 @@ const Subscription: React.FC = () => {
 
       if (data && data.success && data.data?.authorization_url) {
         console.log('Redirecting to Paystack checkout...');
-        // Redirect to Paystack checkout
-        window.location.href = data.data.authorization_url;
+        // Redirect to Paystack checkout with callback URL
+        const callbackUrl = `${window.location.origin}/payment-success?type=subscription&reference=${data.data.reference}`;
+        window.location.href = `${data.data.authorization_url}&callback_url=${encodeURIComponent(callbackUrl)}`;
       } else {
         console.error('Invalid response format:', data);
         throw new Error(data?.error || 'Payment initialization failed - invalid response');

@@ -14,6 +14,7 @@ import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import Subscription from "./pages/Subscription";
 import ProductManagement from "./pages/admin/ProductManagement";
 import UserManagement from "./pages/admin/UserManagement";
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/checkout/:productId" element={<Checkout />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/subscription" element={<Subscription />} />
               
               {/* Admin Routes */}

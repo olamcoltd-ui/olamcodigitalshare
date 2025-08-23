@@ -363,9 +363,9 @@ const ProductManagement: React.FC = () => {
                   <Label>Product File</Label>
                   <FileUpload
                     accept="*/*"
-                    maxSize={500}
+                    maxSize={3000}
                     placeholder="Drag & drop product file or click to upload"
-                    description="Supports: PDF, MP3, MP4, ZIP, and more (Max 500MB)"
+                    description="Supports: PDF, MP3, MP4, ZIP, and more (Max 3GB)"
                     currentFile={productFile}
                     onFileSelect={setProductFile}
                   />
