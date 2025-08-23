@@ -93,6 +93,7 @@ const Subscription: React.FC = () => {
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     try {
       setProcessing(true);
+      console.log('Initializing subscription for plan:', plan.name);
 
       // Initialize payment with Paystack
       const { data, error } = await supabase.functions.invoke('paystack-initialize', {
@@ -108,18 +109,26 @@ const Subscription: React.FC = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('Paystack response:', { data, error });
 
-      if (data.success) {
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data && data.success && data.data?.authorization_url) {
+        console.log('Redirecting to Paystack checkout...');
         // Redirect to Paystack checkout
         window.location.href = data.data.authorization_url;
       } else {
-        throw new Error(data.error || 'Payment initialization failed');
+        console.error('Invalid response format:', data);
+        throw new Error(data?.error || 'Payment initialization failed - invalid response');
       }
 
     } catch (error) {
       console.error('Subscription error:', error);
-      toast.error('Failed to initialize subscription. Please try again.');
+      const errorMessage = error.message || 'Failed to initialize subscription. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setProcessing(false);
     }

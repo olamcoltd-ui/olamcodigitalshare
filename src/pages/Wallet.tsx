@@ -120,15 +120,26 @@ const Wallet: React.FC = () => {
 
   const fetchBanks = async () => {
     try {
+      console.log('Fetching banks list...');
       const { data, error } = await supabase.functions.invoke('get-paystack-banks');
-      if (error) throw error;
       
-      if (data.success) {
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+      
+      console.log('Banks response:', data);
+      
+      if (data && data.success && Array.isArray(data.data)) {
         setBanks(data.data);
+        console.log('Banks loaded successfully:', data.data.length);
+      } else {
+        throw new Error(data?.error || 'Invalid response format');
       }
     } catch (error) {
       console.error('Error fetching banks:', error);
-      toast.error('Failed to load banks list');
+      toast.error('Failed to load banks list. Please try again.');
+      setBanks([]);
     }
   };
 
@@ -336,14 +347,25 @@ const Wallet: React.FC = () => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select your bank" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {banks.map((bank) => (
-                        <SelectItem key={bank.code} value={bank.code}>
-                          {bank.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="bg-card border shadow-elegant max-h-[200px] overflow-y-auto">
+                      {banks.length > 0 ? (
+                        banks.map((bank) => (
+                          <SelectItem key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="p-2 text-center text-muted-foreground text-sm">
+                          {banks.length === 0 ? 'Loading banks...' : 'No banks available'}
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
+                  {banks.length === 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Banks list is loading. Please wait...
+                    </p>
+                  )}
                 </div>
                 
                 <div>

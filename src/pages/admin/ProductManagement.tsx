@@ -162,19 +162,40 @@ const ProductManagement: React.FC = () => {
         return;
       }
 
+      // Validate required files for new products
+      if (!editingProduct && (!thumbnailFile || !productFile)) {
+        toast.error('Please upload both thumbnail and product file');
+        return;
+      }
+
       setUploading(true);
+      console.log('Starting product submission...');
       
       let thumbnailPath = editingProduct?.thumbnail_url || '';
       let filePath = editingProduct?.file_url || '';
 
       // Upload thumbnail if provided
       if (thumbnailFile) {
-        thumbnailPath = await uploadFile(thumbnailFile, 'product-images', 'thumbnails/');
+        console.log('Uploading thumbnail...');
+        try {
+          thumbnailPath = await uploadFile(thumbnailFile, 'product-images', 'thumbnails/');
+          console.log('Thumbnail uploaded:', thumbnailPath);
+        } catch (uploadError) {
+          console.error('Thumbnail upload failed:', uploadError);
+          throw new Error('Failed to upload thumbnail image');
+        }
       }
 
       // Upload product file if provided
       if (productFile) {
-        filePath = await uploadFile(productFile, 'product-files', 'products/');
+        console.log('Uploading product file...');
+        try {
+          filePath = await uploadFile(productFile, 'product-files', 'products/');
+          console.log('Product file uploaded:', filePath);
+        } catch (uploadError) {
+          console.error('Product file upload failed:', uploadError);
+          throw new Error('Failed to upload product file');
+        }
       }
 
       const productData = {
@@ -185,23 +206,32 @@ const ProductManagement: React.FC = () => {
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
         thumbnail_url: thumbnailPath,
         file_url: filePath,
-        file_size_mb: productFile ? productFile.size / (1024 * 1024) : editingProduct?.file_size_mb || 0,
+        file_size_mb: productFile ? Math.round((productFile.size / (1024 * 1024)) * 100) / 100 : editingProduct?.file_size_mb || 0,
         is_active: true
       };
+
+      console.log('Inserting/updating product data:', productData);
 
       let result;
       if (editingProduct) {
         result = await supabase
           .from('products')
           .update(productData)
-          .eq('id', editingProduct.id);
+          .eq('id', editingProduct.id)
+          .select();
       } else {
         result = await supabase
           .from('products')
-          .insert(productData);
+          .insert(productData)
+          .select();
       }
 
-      if (result.error) throw result.error;
+      console.log('Database result:', result);
+
+      if (result.error) {
+        console.error('Database error:', result.error);
+        throw result.error;
+      }
 
       toast.success(`Product ${editingProduct ? 'updated' : 'created'} successfully`);
       setDialogOpen(false);
@@ -210,7 +240,8 @@ const ProductManagement: React.FC = () => {
 
     } catch (error) {
       console.error('Error saving product:', error);
-      toast.error(`Failed to ${editingProduct ? 'update' : 'create'} product`);
+      const errorMessage = error.message || `Failed to ${editingProduct ? 'update' : 'create'} product`;
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
