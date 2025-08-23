@@ -12,6 +12,9 @@ import Products from "./pages/Products";
 import Analytics from "./pages/Analytics";
 import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import Checkout from "./pages/Checkout";
+import Subscription from "./pages/Subscription";
 import ProductManagement from "./pages/admin/ProductManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
@@ -36,6 +39,9 @@ const App = () => (
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/wallet" element={<Wallet />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/checkout/:productId" element={<Checkout />} />
+              <Route path="/subscription" element={<Subscription />} />
               
               {/* Admin Routes */}
               <Route path="/admin/products" element={<ProductManagement />} />
@@ -45,7 +51,6 @@ const App = () => (
               {/* Placeholder routes */}
               <Route path="/about" element={<div className="container py-20 text-center"><h1 className="text-4xl font-bold">About Us</h1><p className="mt-4">Coming soon...</p></div>} />
               <Route path="/contact" element={<div className="container py-20 text-center"><h1 className="text-4xl font-bold">Contact</h1><p className="mt-4">Coming soon...</p></div>} />
-              <Route path="/profile" element={<div className="container py-20 text-center"><h1 className="text-4xl font-bold">Profile</h1><p className="mt-4">Coming soon...</p></div>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

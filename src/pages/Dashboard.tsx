@@ -218,7 +218,7 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Button 
             variant="outline" 
             size="lg" 
@@ -257,6 +257,16 @@ const Dashboard: React.FC = () => {
           >
             <SettingsIcon className="h-6 w-6" />
             Settings
+          </Button>
+
+          <Button 
+            variant="hero" 
+            size="lg" 
+            className="h-24 flex-col gap-2"
+            onClick={() => navigate('/subscription')}
+          >
+            <Plus className="h-6 w-6" />
+            Upgrade Plan
           </Button>
         </div>
 

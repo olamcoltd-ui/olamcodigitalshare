@@ -103,13 +103,22 @@ const Products: React.FC = () => {
   };
 
   const handleShare = (product: Product) => {
-    const shareUrl = `${window.location.origin}/product/${product.id}`;
+    // Get current user's referral code from URL or local storage
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    
+    const shareUrl = `${window.location.origin}/checkout/${product.id}${refCode ? `?ref=${refCode}` : ''}`;
     navigator.clipboard.writeText(shareUrl);
     toast.success('Product link copied to clipboard!');
   };
 
   const handlePurchase = (product: Product) => {
-    navigate(`/checkout/${product.id}`);
+    // Get referral code from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    
+    const checkoutUrl = `/checkout/${product.id}${refCode ? `?ref=${refCode}` : ''}`;
+    navigate(checkoutUrl);
   };
 
   if (loading) {

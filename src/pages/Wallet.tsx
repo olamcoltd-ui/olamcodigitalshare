@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Wallet as WalletIcon, 
@@ -15,7 +16,9 @@ import {
   Minus,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Building,
+  CreditCard
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -44,6 +47,12 @@ interface WithdrawalRequest {
   processing_fee: number;
 }
 
+interface Bank {
+  name: string;
+  code: string;
+  id: number;
+}
+
 const Wallet: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -51,11 +60,14 @@ const Wallet: React.FC = () => {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [withdrawalOpen, setWithdrawalOpen] = useState(false);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [verifying, setVerifying] = useState(false);
   
   // Form state
   const [amount, setAmount] = useState('');
   const [accountName, setAccountName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
+  const [bankCode, setBankCode] = useState('');
   const [bankName, setBankName] = useState('');
 
   useEffect(() => {
@@ -67,6 +79,7 @@ const Wallet: React.FC = () => {
     if (user) {
       fetchWalletData();
       fetchWithdrawals();
+      fetchBanks();
     }
   }, [user, authLoading, navigate]);
 
@@ -102,6 +115,52 @@ const Wallet: React.FC = () => {
       toast.error('Failed to load withdrawal history');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBanks = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-paystack-banks');
+      if (error) throw error;
+      
+      if (data.success) {
+        setBanks(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching banks:', error);
+      toast.error('Failed to load banks list');
+    }
+  };
+
+  const verifyBankAccount = async () => {
+    if (!accountNumber || !bankCode) {
+      toast.error('Please select bank and enter account number');
+      return;
+    }
+
+    try {
+      setVerifying(true);
+      const { data, error } = await supabase.functions.invoke('verify-bank-details', {
+        body: {
+          account_number: accountNumber,
+          bank_code: bankCode
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setAccountName(data.data.account_name);
+        setBankName(data.data.bank_name);
+        toast.success('Account verified successfully!');
+      } else {
+        throw new Error(data.error || 'Account verification failed');
+      }
+    } catch (error) {
+      console.error('Bank verification error:', error);
+      toast.error('Failed to verify account. Please check details.');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -148,6 +207,7 @@ const Wallet: React.FC = () => {
       setAmount('');
       setAccountName('');
       setAccountNumber('');
+      setBankCode('');
       setBankName('');
       
       // Refresh data
@@ -271,36 +331,61 @@ const Wallet: React.FC = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="accountName">Account Name</Label>
-                  <Input
-                    id="accountName"
-                    value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    placeholder="Enter account name"
-                  />
+                  <Label htmlFor="bankCode">Select Bank</Label>
+                  <Select value={bankCode} onValueChange={setBankCode}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your bank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {banks.map((bank) => (
+                        <SelectItem key={bank.code} value={bank.code}>
+                          {bank.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div>
                   <Label htmlFor="accountNumber">Account Number</Label>
-                  <Input
-                    id="accountNumber"
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    placeholder="Enter account number"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="accountNumber"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      placeholder="Enter account number"
+                      maxLength={10}
+                    />
+                    <Button 
+                      type="button"
+                      onClick={verifyBankAccount}
+                      disabled={!accountNumber || !bankCode || verifying}
+                      variant="outline"
+                    >
+                      {verifying ? 'Verifying...' : 'Verify'}
+                    </Button>
+                  </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="bankName">Bank Name</Label>
-                  <Input
-                    id="bankName"
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    placeholder="Enter bank name"
-                  />
-                </div>
+                {accountName && (
+                  <div>
+                    <Label>Account Name</Label>
+                    <div className="p-3 bg-success/10 border border-success/20 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-success" />
+                        <span className="font-medium text-success">{accountName}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{bankName}</p>
+                    </div>
+                  </div>
+                )}
                 
-                <Button onClick={handleWithdrawal} className="w-full" variant="hero">
+                <Button 
+                  onClick={handleWithdrawal} 
+                  className="w-full" 
+                  variant="hero"
+                  disabled={!accountName || !bankName}
+                >
                   Submit Request
                 </Button>
               </div>
