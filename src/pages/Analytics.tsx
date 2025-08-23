@@ -63,7 +63,7 @@ const Analytics: React.FC = () => {
 
       // Calculate analytics
       const totalSales = sales?.length || 0;
-      const totalEarnings = sales?.reduce((sum, sale) => sum + parseFloat(sale.commission_amount), 0) || 0;
+      const totalEarnings = sales?.reduce((sum, sale) => sum + Number(sale.commission_amount || 0), 0) || 0;
       const totalReferrals = referrals?.length || 0;
 
       setAnalytics({
@@ -222,7 +222,7 @@ const Analytics: React.FC = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-success">
-                        ₦{parseFloat(sale.commission_amount).toLocaleString()}
+                        ₦{Number(sale.commission_amount || 0).toLocaleString()}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Commission

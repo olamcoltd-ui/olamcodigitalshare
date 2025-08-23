@@ -80,11 +80,11 @@ const AdminAnalytics: React.FC = () => {
 
       // Calculate metrics
       const totalSales = sales?.length || 0;
-      const totalRevenue = sales?.reduce((sum, sale) => sum + parseFloat(sale.sale_amount || '0'), 0) || 0;
-      const totalCommissionsPaid = sales?.reduce((sum, sale) => sum + parseFloat(sale.commission_amount || '0'), 0) || 0;
+      const totalRevenue = sales?.reduce((sum, sale) => sum + Number(sale.sale_amount || 0), 0) || 0;
+      const totalCommissionsPaid = sales?.reduce((sum, sale) => sum + Number(sale.commission_amount || 0), 0) || 0;
       
       const completedWithdrawals = withdrawals?.filter(w => w.status === 'completed') || [];
-      const totalWithdrawals = completedWithdrawals.reduce((sum, w) => sum + parseFloat(w.amount || '0'), 0);
+      const totalWithdrawals = completedWithdrawals.reduce((sum, w) => sum + Number(w.amount || 0), 0);
       
       const pendingWithdrawals = withdrawals?.filter(w => w.status === 'pending').length || 0;
 
@@ -271,12 +271,12 @@ const AdminAnalytics: React.FC = () => {
                       <p className="font-medium">{sale.buyer_email}</p>
                       <p className="text-sm text-muted-foreground">
                         {new Date(sale.created_at).toLocaleDateString()} • 
-                        Sale Amount: ₦{parseFloat(sale.sale_amount).toLocaleString()}
+                        Sale Amount: ₦{Number(sale.sale_amount || 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-success">
-                        ₦{(parseFloat(sale.sale_amount) - parseFloat(sale.commission_amount)).toLocaleString()}
+                        ₦{(Number(sale.sale_amount || 0) - Number(sale.commission_amount || 0)).toLocaleString()}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Admin Revenue
