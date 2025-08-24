@@ -119,8 +119,8 @@ const Checkout: React.FC = () => {
       if (error) throw error;
 
       if (data.success) {
-        // Redirect to Paystack checkout (callback URL is set in the initialization)
-        window.open(data.data.authorization_url, '_blank');
+        // Redirect to Paystack checkout (callback URL set in the Edge Function)
+        window.location.href = data.data.authorization_url;
       } else {
         throw new Error(data.error || 'Payment initialization failed');
       }

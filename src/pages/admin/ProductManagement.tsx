@@ -146,11 +146,14 @@ const ProductManagement: React.FC = () => {
 
   const uploadFile = async (file: File, bucket: string, folder: string = '') => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}${Date.now()}.${fileExt}`;
-    
+    const uniqueName = `${folder}${crypto.randomUUID()}.${fileExt}`;
+
     const { data, error } = await supabase.storage
       .from(bucket)
-      .upload(fileName, file);
+      .upload(uniqueName, file, {
+        upsert: true,
+        contentType: file.type || undefined,
+      });
 
     if (error) throw error;
     return data.path;

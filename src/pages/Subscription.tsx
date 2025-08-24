@@ -95,7 +95,21 @@ const Subscription: React.FC = () => {
       setProcessing(true);
       console.log('Initializing subscription for plan:', plan.name);
 
-      // Initialize payment with Paystack
+      // Free plan: create subscription instantly without Paystack
+      if (plan.price <= 0) {
+        const { data, error } = await supabase.functions.invoke('create-free-subscription', {
+          body: { planId: plan.id }
+        });
+
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'Failed to activate free plan');
+
+        toast.success('Free plan activated successfully');
+        navigate('/payment-success?type=subscription&reference=free');
+        return;
+      }
+
+      // Paid plans: Initialize payment with Paystack
       const { data, error } = await supabase.functions.invoke('paystack-initialize', {
         body: {
           email: user?.email,
@@ -118,15 +132,14 @@ const Subscription: React.FC = () => {
 
       if (data && data.success && data.data?.authorization_url) {
         console.log('Redirecting to Paystack checkout...');
-        // Redirect to Paystack checkout with callback URL
-        const callbackUrl = `${window.location.origin}/payment-success?type=subscription&reference=${data.data.reference}`;
-        window.location.href = `${data.data.authorization_url}&callback_url=${encodeURIComponent(callbackUrl)}`;
+        // Redirect to Paystack checkout; callback_url handled by edge function
+        window.location.href = data.data.authorization_url;
       } else {
         console.error('Invalid response format:', data);
         throw new Error(data?.error || 'Payment initialization failed - invalid response');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Subscription error:', error);
       const errorMessage = error.message || 'Failed to initialize subscription. Please try again.';
       toast.error(errorMessage);

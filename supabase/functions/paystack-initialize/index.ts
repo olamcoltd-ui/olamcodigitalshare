@@ -33,6 +33,17 @@ Deno.serve(async (req) => {
       throw new Error('Paystack secret key not configured');
     }
 
+    // Validate amount
+    const amountNaira = Number(amount);
+    if (!Number.isFinite(amountNaira) || amountNaira <= 0) {
+      throw new Error('Invalid Amount Sent');
+    }
+    const amountKobo = Math.round(amountNaira * 100);
+
+    const origin = req.headers.get('origin') || '';
+    const paymentType = planId ? 'subscription' : 'product';
+    const callbackUrl = `${origin}/payment-success?type=${paymentType}`;
+
     // Initialize Paystack transaction
     const paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -42,16 +53,17 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         email,
-        amount: amount * 100, // Convert to kobo
-        callback_url: `${req.headers.get('origin')}/payment-success`,
+        amount: amountKobo, // Convert to kobo
+        callback_url: callbackUrl,
         metadata: {
           productId,
           planId,
           referralCode,
+          paymentType,
           custom_fields: [
             {
-              display_name: "Product ID",
-              variable_name: "product_id",
+              display_name: 'Product ID',
+              variable_name: 'product_id',
               value: productId || ''
             }
           ]
