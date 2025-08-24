@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         email,
         amount: amount * 100, // Convert to kobo
-        callback_url: `${req.headers.get('origin')}/payment/success`,
+        callback_url: `${req.headers.get('origin')}/payment-success`,
         metadata: {
           productId,
           planId,

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { Upload, X, FileIcon, ImageIcon } from 'lucide-react';
 import { Button } from './button';
 
@@ -23,6 +23,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): boolean => {
     if (maxSize && file.size > maxSize * 1024 * 1024) {
@@ -74,7 +75,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   };
 
   const handleClick = () => {
-    document.getElementById(`file-input-${Math.random()}`)?.click();
+    fileInputRef.current?.click();
   };
 
   const Icon = type === 'image' ? ImageIcon : FileIcon;
@@ -126,7 +127,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         )}
         
         <input
-          id={`file-input-${Math.random()}`}
+          ref={fileInputRef}
           type="file"
           accept={accept}
           className="hidden"
