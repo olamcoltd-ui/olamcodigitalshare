@@ -62,6 +62,7 @@ const Wallet: React.FC = () => {
   const [withdrawalOpen, setWithdrawalOpen] = useState(false);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [verifying, setVerifying] = useState(false);
+  const [banksLoading, setBanksLoading] = useState(true);
   
   // Form state
   const [amount, setAmount] = useState('');
@@ -69,6 +70,7 @@ const Wallet: React.FC = () => {
   const [accountNumber, setAccountNumber] = useState('');
   const [bankCode, setBankCode] = useState('');
   const [bankName, setBankName] = useState('');
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -120,6 +122,7 @@ const Wallet: React.FC = () => {
 
   const fetchBanks = async () => {
     try {
+      setBanksLoading(true);
       console.log('Fetching banks list...');
       const { data, error } = await supabase.functions.invoke('get-paystack-banks');
       
@@ -131,8 +134,17 @@ const Wallet: React.FC = () => {
       console.log('Banks response:', data);
       
       if (data && data.success && Array.isArray(data.data)) {
-        setBanks(data.data);
-        console.log('Banks loaded successfully:', data.data.length);
+        // Filter out duplicate bank codes and sort alphabetically
+        const uniqueBanks = data.data.reduce((acc: Bank[], bank: Bank) => {
+          const exists = acc.find(b => b.code === bank.code);
+          if (!exists) {
+            acc.push(bank);
+          }
+          return acc;
+        }, []).sort((a, b) => a.name.localeCompare(b.name));
+        
+        setBanks(uniqueBanks);
+        console.log('Banks loaded successfully:', uniqueBanks.length);
       } else {
         throw new Error(data?.error || 'Invalid response format');
       }
@@ -140,17 +152,39 @@ const Wallet: React.FC = () => {
       console.error('Error fetching banks:', error);
       toast.error('Failed to load banks list. Please try again.');
       setBanks([]);
+    } finally {
+      setBanksLoading(false);
     }
   };
 
-  const verifyBankAccount = async () => {
+  const verifyBankAccount = async (autoVerify = false) => {
     if (!accountNumber || !bankCode) {
-      toast.error('Please select bank and enter account number');
+      if (!autoVerify) {
+        toast.error('Please select bank and enter account number');
+      }
+      return;
+    }
+
+    // Skip verification if account number is less than 10 digits
+    if (accountNumber.length !== 10) {
+      if (!autoVerify) {
+        toast.error('Account number must be 10 digits');
+      }
+      setVerificationStatus('idle');
+      setAccountName('');
+      setBankName('');
       return;
     }
 
     try {
+      setVerificationStatus('verifying');
       setVerifying(true);
+      
+      const selectedBank = banks.find(bank => bank.code === bankCode);
+      if (!selectedBank) {
+        throw new Error('Please select a valid bank');
+      }
+
       const { data, error } = await supabase.functions.invoke('verify-bank-details', {
         body: {
           account_number: accountNumber,
@@ -163,13 +197,21 @@ const Wallet: React.FC = () => {
       if (data.success) {
         setAccountName(data.data.account_name);
         setBankName(data.data.bank_name);
-        toast.success('Account verified successfully!');
+        setVerificationStatus('success');
+        if (!autoVerify) {
+          toast.success('Account verified successfully!');
+        }
       } else {
         throw new Error(data.error || 'Account verification failed');
       }
     } catch (error) {
       console.error('Bank verification error:', error);
-      toast.error('Failed to verify account. Please check details.');
+      setVerificationStatus('error');
+      setAccountName('');
+      setBankName('');
+      if (!autoVerify) {
+        toast.error('Failed to verify account. Please check details.');
+      }
     } finally {
       setVerifying(false);
     }
@@ -220,6 +262,7 @@ const Wallet: React.FC = () => {
       setAccountNumber('');
       setBankCode('');
       setBankName('');
+      setVerificationStatus('idle');
       
       // Refresh data
       fetchWalletData();
@@ -343,27 +386,45 @@ const Wallet: React.FC = () => {
                 
                 <div>
                   <Label htmlFor="bankCode">Select Bank</Label>
-                  <Select value={bankCode} onValueChange={setBankCode}>
+                  <Select 
+                    value={bankCode} 
+                    onValueChange={(value) => {
+                      setBankCode(value);
+                      // Reset verification when bank changes
+                      setAccountName('');
+                      setBankName('');
+                      setVerificationStatus('idle');
+                      // Auto-verify if account number is already entered
+                      if (accountNumber && accountNumber.length === 10) {
+                        setTimeout(() => verifyBankAccount(true), 500);
+                      }
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select your bank" />
                     </SelectTrigger>
                     <SelectContent className="bg-card border shadow-elegant max-h-[200px] overflow-y-auto">
-                      {banks.length > 0 ? (
+                      {banksLoading ? (
+                        <div className="p-4 text-center text-muted-foreground text-sm">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto mb-2"></div>
+                          Loading banks...
+                        </div>
+                      ) : banks.length > 0 ? (
                         banks.map((bank) => (
-                          <SelectItem key={bank.code} value={bank.code}>
+                          <SelectItem key={`${bank.id}-${bank.code}`} value={bank.code}>
                             {bank.name}
                           </SelectItem>
                         ))
                       ) : (
                         <div className="p-2 text-center text-muted-foreground text-sm">
-                          {banks.length === 0 ? 'Loading banks...' : 'No banks available'}
+                          No banks available. Try refreshing.
                         </div>
                       )}
                     </SelectContent>
                   </Select>
-                  {banks.length === 0 && (
+                  {banksLoading && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Banks list is loading. Please wait...
+                      Loading Nigerian banks and fintech institutions...
                     </p>
                   )}
                 </div>
@@ -371,33 +432,75 @@ const Wallet: React.FC = () => {
                 <div>
                   <Label htmlFor="accountNumber">Account Number</Label>
                   <div className="flex gap-2">
-                    <Input
-                      id="accountNumber"
-                      value={accountNumber}
-                      onChange={(e) => setAccountNumber(e.target.value)}
-                      placeholder="Enter account number"
-                      maxLength={10}
-                    />
+                    <div className="flex-1 relative">
+                      <Input
+                        id="accountNumber"
+                        value={accountNumber}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, ''); // Only numbers
+                          setAccountNumber(value);
+                          
+                          // Reset verification status when account number changes
+                          if (value.length !== 10) {
+                            setAccountName('');
+                            setBankName('');
+                            setVerificationStatus('idle');
+                          } else if (bankCode) {
+                            // Auto-verify when 10 digits are entered and bank is selected
+                            setTimeout(() => verifyBankAccount(true), 500);
+                          }
+                        }}
+                        placeholder="Enter 10-digit account number"
+                        maxLength={10}
+                        className={
+                          verificationStatus === 'success' ? 'border-success' :
+                          verificationStatus === 'error' ? 'border-destructive' :
+                          'border-input'
+                        }
+                      />
+                      {verifying && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        </div>
+                      )}
+                    </div>
                     <Button 
                       type="button"
-                      onClick={verifyBankAccount}
-                      disabled={!accountNumber || !bankCode || verifying}
+                      onClick={() => verifyBankAccount(false)}
+                      disabled={!accountNumber || accountNumber.length !== 10 || !bankCode || verifying}
                       variant="outline"
+                      size="sm"
                     >
                       {verifying ? 'Verifying...' : 'Verify'}
                     </Button>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Account will be automatically verified when you enter 10 digits
+                  </p>
                 </div>
                 
-                {accountName && (
+                {verificationStatus === 'success' && accountName && (
                   <div>
-                    <Label>Account Name</Label>
+                    <Label>Verified Account Details</Label>
                     <div className="p-3 bg-success/10 border border-success/20 rounded-md">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-success" />
-                        <span className="font-medium text-success">{accountName}</span>
+                        <div>
+                          <span className="font-medium text-success block">{accountName}</span>
+                          <span className="text-xs text-muted-foreground">{bankName}</span>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{bankName}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {verificationStatus === 'error' && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <XCircle className="h-4 w-4 text-destructive" />
+                      <span className="text-sm text-destructive">
+                        Unable to verify account. Please check account number and bank selection.
+                      </span>
                     </div>
                   </div>
                 )}
@@ -406,9 +509,19 @@ const Wallet: React.FC = () => {
                   onClick={handleWithdrawal} 
                   className="w-full" 
                   variant="hero"
-                  disabled={!accountName || !bankName}
+                  disabled={
+                    !accountName || 
+                    !bankName || 
+                    !amount || 
+                    parseFloat(amount) < 51 || 
+                    parseFloat(amount) > (wallet?.balance || 0) ||
+                    verificationStatus !== 'success'
+                  }
                 >
-                  Submit Request
+                  {!accountName || verificationStatus !== 'success' 
+                    ? 'Verify Account Details First'
+                    : `Submit Withdrawal Request`
+                  }
                 </Button>
               </div>
             </DialogContent>
