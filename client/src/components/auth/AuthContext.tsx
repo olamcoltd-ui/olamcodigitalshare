@@ -1,10 +1,17 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+
+// Mock user interface for migration
+interface User {
+  id: string;
+  email: string;
+  user_metadata?: {
+    full_name?: string;
+  };
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  session: any;
   loading: boolean;
   signUp: (email: string, password: string, fullName?: string, referralCode?: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
@@ -23,58 +30,32 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Mock auth initialization - set loading to false
+    setTimeout(() => {
       setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }, 100);
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string, referralCode?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          referral_code: referralCode,
-        }
-      }
-    });
-
-    return { data, error };
+    // TODO: Implement actual signup with API
+    console.log('Sign up:', { email, fullName, referralCode });
+    return { error: { message: 'Authentication needs to be implemented' } };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    return { data, error };
+    // TODO: Implement actual signin with API  
+    console.log('Sign in:', { email });
+    return { error: { message: 'Authentication needs to be implemented' } };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // TODO: Implement actual signout
+    setUser(null);
+    setSession(null);
   };
 
   const value = {

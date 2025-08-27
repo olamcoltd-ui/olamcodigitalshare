@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { 
   Crown, 
   Check,
@@ -58,12 +58,7 @@ const Subscription: React.FC = () => {
 
   const fetchPlans = async () => {
     try {
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .order('price', { ascending: true });
-
-      if (error) throw error;
+      const data = await api.getSubscriptionPlans();
       setPlans(data || []);
     } catch (error) {
       console.error('Error fetching plans:', error);
@@ -74,14 +69,7 @@ const Subscription: React.FC = () => {
   const fetchUserSubscription = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .eq('status', 'active')
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
+      const data = await api.getUserSubscription(user?.id || '');
       setUserSubscription(data);
     } catch (error) {
       console.error('Error fetching user subscription:', error);
@@ -97,11 +85,8 @@ const Subscription: React.FC = () => {
 
       // Free plan: create subscription instantly without Paystack
       if (plan.price <= 0) {
-        const { data, error } = await supabase.functions.invoke('create-free-subscription', {
-          body: { planId: plan.id }
-        });
+        const data = await api.createFreeSubscription(plan.id, user?.id || '');
 
-        if (error) throw error;
         if (!data?.success) throw new Error(data?.error || 'Failed to activate free plan');
 
         toast.success('Free plan activated successfully');
@@ -110,25 +95,13 @@ const Subscription: React.FC = () => {
       }
 
       // Paid plans: Initialize payment with Paystack
-      const { data, error } = await supabase.functions.invoke('paystack-initialize', {
-        body: {
-          email: user?.email,
-          amount: plan.price,
-          planId: plan.id,
-          metadata: {
-            planName: plan.name,
-            subscriptionType: 'monthly',
-            isSubscription: true
-          }
-        }
+      const data = await api.initializePayment({
+        email: user?.email || '',
+        amount: Number(plan.price),
+        planId: plan.id,
       });
 
-      console.log('Paystack response:', { data, error });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+      console.log('Paystack response:', data);
 
       if (data && data.success && data.data?.authorization_url) {
         console.log('Redirecting to Paystack checkout...');

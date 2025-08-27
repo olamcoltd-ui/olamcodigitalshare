@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { 
   ShoppingCart, 
   CreditCard,
@@ -65,14 +65,7 @@ const Checkout: React.FC = () => {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .eq('is_active', true)
-        .single();
-
-      if (error) throw error;
+      const data = await api.getProduct(productId!);
       setProduct(data);
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -102,24 +95,15 @@ const Checkout: React.FC = () => {
       setProcessing(true);
 
       // Initialize payment with Paystack
-      const { data, error } = await supabase.functions.invoke('paystack-initialize', {
-        body: {
-          email: user?.email || formData.email,
-          amount: product.price,
-          productId: product.id,
-          referralCode: formData.referral_code,
-          metadata: {
-            productTitle: product.title,
-            buyerName: user?.user_metadata?.full_name || formData.full_name,
-            isGuest: !user
-          }
-        }
+      const data = await api.initializePayment({
+        email: user?.email || formData.email,
+        amount: Number(product.price),
+        productId: product.id,
+        referralCode: formData.referral_code,
       });
 
-      if (error) throw error;
-
       if (data.success) {
-        // Redirect to Paystack checkout (callback URL set in the Edge Function)
+        // Redirect to Paystack checkout
         window.location.href = data.data.authorization_url;
       } else {
         throw new Error(data.error || 'Payment initialization failed');

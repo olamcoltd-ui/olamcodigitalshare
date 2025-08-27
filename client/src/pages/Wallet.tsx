@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { 
   Wallet as WalletIcon, 
   TrendingUp, 
@@ -124,12 +124,7 @@ const Wallet: React.FC = () => {
     try {
       setBanksLoading(true);
       console.log('Fetching banks list...');
-      const { data, error } = await supabase.functions.invoke('get-paystack-banks');
-      
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+      const data = await api.getBanks();
       
       console.log('Banks response:', data);
       
@@ -185,14 +180,10 @@ const Wallet: React.FC = () => {
         throw new Error('Please select a valid bank');
       }
 
-      const { data, error } = await supabase.functions.invoke('verify-bank-details', {
-        body: {
-          account_number: accountNumber,
-          bank_code: bankCode
-        }
+      const data = await api.verifyBankDetails({
+        account_number: accountNumber,
+        bank_code: bankCode
       });
-
-      if (error) throw error;
 
       if (data.success) {
         setAccountName(data.data.account_name);

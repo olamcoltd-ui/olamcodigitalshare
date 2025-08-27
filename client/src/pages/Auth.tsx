@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/components/auth/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase import removed - using mock auth
 import { AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logoImage from '@/assets/olamco-logo.png';
@@ -101,15 +101,9 @@ const Auth: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?mode=reset`,
-      });
-      
-      if (error) {
-        setError(error.message);
-      } else {
-        alert('Password reset email sent! Please check your inbox.');
-      }
+      // TODO: Implement actual password reset functionality
+      console.log('Password reset requested for:', email);
+      alert('Password reset functionality needs to be implemented. Please contact support.');
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
     } finally {
