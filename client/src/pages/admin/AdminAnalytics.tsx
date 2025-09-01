@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// Supabase import removed - using API client
+import { supabase } from '@/lib/supabaseClient';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -80,13 +80,13 @@ const AdminAnalytics: React.FC = () => {
 
       // Calculate metrics
       const totalSales = sales?.length || 0;
-      const totalRevenue = sales?.reduce((sum, sale) => sum + Number(sale.sale_amount || 0), 0) || 0;
-      const totalCommissionsPaid = sales?.reduce((sum, sale) => sum + Number(sale.commission_amount || 0), 0) || 0;
+      const totalRevenue = sales?.reduce((sum: number, sale: any) => sum + Number(sale.sale_amount || 0), 0) || 0;
+      const totalCommissionsPaid = sales?.reduce((sum: number, sale: any) => sum + Number(sale.commission_amount || 0), 0) || 0;
       
-      const completedWithdrawals = withdrawals?.filter(w => w.status === 'completed') || [];
-      const totalWithdrawals = completedWithdrawals.reduce((sum, w) => sum + Number(w.amount || 0), 0);
+      const completedWithdrawals = (withdrawals?.filter((w: any) => w.status === 'completed') || []);
+      const totalWithdrawals = completedWithdrawals.reduce((sum: number, w: any) => sum + Number(w.amount || 0), 0);
       
-      const pendingWithdrawals = withdrawals?.filter(w => w.status === 'pending').length || 0;
+      const pendingWithdrawals = withdrawals?.filter((w: any) => w.status === 'pending').length || 0;
 
       setAnalytics({
         totalUsers: usersCount || 0,

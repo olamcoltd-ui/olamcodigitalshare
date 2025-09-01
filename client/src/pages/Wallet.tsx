@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/lib/api';
 import { 
   Wallet as WalletIcon, 
@@ -130,13 +131,13 @@ const Wallet: React.FC = () => {
       
       if (data && data.success && Array.isArray(data.data)) {
         // Filter out duplicate bank codes and sort alphabetically
-        const uniqueBanks = data.data.reduce((acc: Bank[], bank: Bank) => {
-          const exists = acc.find(b => b.code === bank.code);
-          if (!exists) {
-            acc.push(bank);
-          }
-          return acc;
-        }, []).sort((a, b) => a.name.localeCompare(b.name));
+        const uniqueBanks = data.data
+          .reduce((acc: Bank[], bank: Bank) => {
+            const exists = acc.find((b: Bank) => b.code === bank.code);
+            if (!exists) acc.push(bank);
+            return acc;
+          }, [] as Bank[])
+          .sort((a: Bank, b: Bank) => a.name.localeCompare(b.name));
         
         setBanks(uniqueBanks);
         console.log('Banks loaded successfully:', uniqueBanks.length);

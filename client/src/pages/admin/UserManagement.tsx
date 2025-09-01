@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-// Supabase import removed - using API client
+import { supabase } from '@/lib/supabaseClient';
 import { 
   Users, 
   Search, 
@@ -97,7 +97,7 @@ const UserManagement: React.FC = () => {
       if (profilesError) throw profilesError;
 
       // Transform the data
-      const transformedUsers = profiles?.map(profile => ({
+      const transformedUsers = profiles?.map((profile: any) => ({
         user_id: profile.user_id,
         email: profile.email,
         full_name: profile.full_name,

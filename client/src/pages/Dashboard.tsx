@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '../../../src/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { 
   DollarSign, 
   TrendingUp, 

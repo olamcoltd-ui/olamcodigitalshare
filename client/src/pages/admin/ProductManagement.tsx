@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileUpload } from '@/components/ui/file-upload';
-// Supabase import removed - using API client
+import { supabase } from '@/lib/supabaseClient';
 import { 
   Plus, 
   Edit, 
@@ -244,7 +244,9 @@ const ProductManagement: React.FC = () => {
 
     } catch (error) {
       console.error('Error saving product:', error);
-      const errorMessage = error.message || `Failed to ${editingProduct ? 'update' : 'create'} product`;
+      const errorMessage = (error && typeof error === 'object' && 'message' in error)
+        ? (error as any).message
+        : `Failed to ${editingProduct ? 'update' : 'create'} product`;
       toast.error(errorMessage);
     } finally {
       setUploading(false);

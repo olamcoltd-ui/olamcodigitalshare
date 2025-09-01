@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { supabase } from '../../../src/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { 
   User, 
   Mail, 
@@ -68,12 +68,13 @@ const Settings: React.FC = () => {
 
       if (error) throw error;
       
-      setProfile(data);
-      setFullName(data.full_name || '');
-      setPhone(data.phone || '');
-      setAccountName(data.account_name || '');
-      setAccountNumber(data.account_number || '');
-      setBankName(data.bank_name || '');
+      const d: any = data as any;
+      setProfile(d);
+      setFullName(d.full_name || '');
+      setPhone(d.phone || '');
+      setAccountName(d.account_name || '');
+      setAccountNumber(d.account_number || '');
+      setBankName(d.bank_name || '');
       
     } catch (error) {
       console.error('Error fetching profile:', error);
