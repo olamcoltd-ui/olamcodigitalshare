@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-// Supabase import removed - using API client
+import { supabase } from '../../../src/integrations/supabase/client';
 import { 
   User, 
   Mail, 
@@ -95,7 +95,7 @@ const Profile: React.FC = () => {
 
       if (commissionsError) throw commissionsError;
 
-      const totalCommissions = commissions?.reduce((sum, comm) => sum + Number(comm.commission_amount), 0) || 0;
+      const totalCommissions = commissions?.reduce((sum: number, comm: any) => sum + Number(comm.commission_amount), 0) || 0;
 
       setReferralStats({
         totalReferrals: referrals?.length || 0,

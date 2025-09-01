@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// Supabase import removed - using API client
+import { supabase } from '../../../src/integrations/supabase/client';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -63,7 +63,7 @@ const Analytics: React.FC = () => {
 
       // Calculate analytics
       const totalSales = sales?.length || 0;
-      const totalEarnings = sales?.reduce((sum, sale) => sum + Number(sale.commission_amount || 0), 0) || 0;
+      const totalEarnings = sales?.reduce((sum: number, sale: any) => sum + Number(sale.commission_amount || 0), 0) || 0;
       const totalReferrals = referrals?.length || 0;
 
       setAnalytics({
