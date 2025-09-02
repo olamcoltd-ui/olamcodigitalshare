@@ -14,7 +14,477 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_wallet: {
+        Row: {
+          balance: number | null
+          created_at: string
+          id: string
+          subscription_revenue: number | null
+          total_revenue: number | null
+          updated_at: string
+          withdrawal_fees: number | null
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string
+          id?: string
+          subscription_revenue?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          withdrawal_fees?: number | null
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string
+          id?: string
+          subscription_revenue?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          withdrawal_fees?: number | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          author: string | null
+          brand: string | null
+          category: string
+          created_at: string
+          description: string
+          file_size_mb: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          price: number
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          brand?: string | null
+          category: string
+          created_at?: string
+          description: string
+          file_size_mb?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          price: number
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          brand?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          file_size_mb?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          price?: number
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          bank_code: string | null
+          bank_name: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_admin: boolean | null
+          phone: string | null
+          referral_code: string
+          referred_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_admin?: boolean | null
+          phone?: string | null
+          referral_code: string
+          referred_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_admin?: boolean | null
+          phone?: string | null
+          referral_code?: string
+          referred_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number | null
+          commission_type: string
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          sale_id: string | null
+          status: string | null
+          subscription_id: string | null
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate?: number | null
+          commission_type: string
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          sale_id?: string | null
+          status?: string | null
+          subscription_id?: string | null
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number | null
+          commission_type?: string
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          sale_id?: string | null
+          status?: string | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_tracking: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          amount: number
+          buyer_email: string
+          buyer_name: string | null
+          commission_amount: number | null
+          commission_rate: number | null
+          created_at: string
+          id: string
+          payment_status: string | null
+          paystack_reference: string | null
+          product_id: string
+          referral_code: string | null
+          seller_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_email: string
+          buyer_name?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          payment_status?: string | null
+          paystack_reference?: string | null
+          product_id: string
+          referral_code?: string | null
+          seller_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_email?: string
+          buyer_name?: string | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          payment_status?: string | null
+          paystack_reference?: string | null
+          product_id?: string
+          referral_code?: string | null
+          seller_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          duration_months: number | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+        }
+        Insert: {
+          commission_rate: number
+          created_at?: string
+          duration_months?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          duration_months?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          reference: string | null
+          status: string | null
+          type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference?: string | null
+          status?: string | null
+          type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          reference?: string | null
+          status?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan_id: string
+          starts_at?: string
+          status: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan_id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number | null
+          created_at: string
+          id: string
+          total_earned: number | null
+          total_withdrawn: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number | null
+          created_at?: string
+          id?: string
+          total_earned?: number | null
+          total_withdrawn?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number | null
+          created_at?: string
+          id?: string
+          total_earned?: number | null
+          total_withdrawn?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      withdrawals: {
+        Row: {
+          account_name: string
+          account_number: string
+          amount: number
+          bank_code: string | null
+          bank_name: string
+          created_at: string
+          failure_reason: string | null
+          id: string
+          processed_at: string | null
+          reference: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          amount: number
+          bank_code?: string | null
+          bank_name: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          processed_at?: string | null
+          reference?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          amount?: number
+          bank_code?: string | null
+          bank_name?: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          processed_at?: string | null
+          reference?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
